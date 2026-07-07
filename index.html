@@ -536,7 +536,8 @@
 const LS = {
   profile: 'gwfx_profile',
   records: 'gwfx_records',      // [{t, type:'ff'|'dd', sec, amt}]
-  firstDay: 'gwfx_first_day'
+  firstDay: 'gwfx_first_day',
+  active: 'gwfx_active'         // 进行中的放风 {scene, start}，用于跨刷新/退出续计时
 };
 
 /* ---------- 工具 ---------- */
@@ -822,29 +823,48 @@ function setScene(scene){
   document.querySelectorAll('#scene-row .chip').forEach(c=>{
     c.classList.toggle('on', c.dataset.scene === scene);
   });
+  if(timer.running) saveActive();  // 保存当前场景，恢复时保持一致
 }
 
-function startTimer(){
-  const p = loadProfile();
-  timer = { running:true, scene:'ff', start:Date.now(), itv:null, sloganItv:null };
-  setScene('ff');
-  $('tm-clock').textContent = '00:00';
-  $('tm-money').textContent = '¥0.00';
-  $('tm-slogan').textContent = rand(SLOGANS);
-  track('fangfeng_start');  // 开始放风
-  show('view-timer');
-  const ps = perSecond(p);
-  timer.itv = setInterval(()=>{
+function loadActive(){ try{ const a = JSON.parse(localStorage.getItem(LS.active)); return (a && a.start) ? a : null; }catch(e){ return null; } }
+function saveActive(){ localStorage.setItem(LS.active, JSON.stringify({ scene: timer.scene, start: timer.start })); }
+
+// 根据 timer.start（绝对时间戳）驱动计时刷新，刷新/恢复通用
+function runTimerTicks(){
+  const ps = perSecond(loadProfile());
+  const paint = ()=>{
     const sec = (Date.now()-timer.start)/1000;
     $('tm-clock').textContent = fmtClock(sec);
     $('tm-money').textContent = yuan(sec*ps);
-  }, 250);
+  };
+  paint(); // 立即刷新一次，恢复时不闪 00:00
+  timer.itv = setInterval(paint, 250);
   timer.sloganItv = setInterval(()=>{ $('tm-slogan').textContent = rand(SLOGANS); }, 6000);
+}
+
+function startTimer(){
+  timer = { running:true, scene:'ff', start:Date.now(), itv:null, sloganItv:null };
+  saveActive();  // 持久化开始时间，退出后可续计
+  setScene('ff');
+  $('tm-slogan').textContent = rand(SLOGANS);
+  track('fangfeng_start');  // 开始放风
+  show('view-timer');
+  runTimerTicks();
+}
+
+// 页面重新打开时，若有未收监的放风，恢复到计时页并把离开的时间也算入
+function resumeTimer(active){
+  timer = { running:true, scene: active.scene || 'ff', start: active.start, itv:null, sloganItv:null };
+  setScene(timer.scene);
+  $('tm-slogan').textContent = rand(SLOGANS);
+  show('view-timer');
+  runTimerTicks();
 }
 
 function stopTimer(){
   if(!timer.running) return;
   clearInterval(timer.itv); clearInterval(timer.sloganItv);
+  localStorage.removeItem(LS.active);  // 放风结束，清除进行中状态
   const p = loadProfile();
   const sec = Math.max(1, Math.floor((Date.now()-timer.start)/1000));
   const amt = sec * perSecond(p);
@@ -996,7 +1016,12 @@ function tickServed(){
     hSel.appendChild(opt);
   }
   const p = loadProfile();
-  if(p){ renderHome(); show('view-home'); }
+  if(p){
+    renderHome();
+    const active = loadActive();
+    if(active){ resumeTimer(active); }   // 有未收监的放风 → 继续计时（含离开的时间）
+    else{ show('view-home'); }
+  }
   else{ show('view-register'); }
   tickServed();
   setInterval(tickServed, 1000);
