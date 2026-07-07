@@ -417,6 +417,7 @@
 
     <div class="homefoot">
       <button class="linklike" id="link-archive">服刑档案</button>
+      <button class="linklike" id="link-edit">修改信息</button>
       <button class="linklike" id="link-verdict">查看判决书</button>
     </div>
   </section>
@@ -899,10 +900,16 @@ $('btn-register').addEventListener('click', ()=>{
   const MODE_TEXT = { '5':'双休制（每周假释两日）', '5.5':'大小周制（隔周假释）', '6':'单休制（每周假释一日）' };
   const mode = MODE_TEXT[$('f-mode').value] || MODE_TEXT['5'];
   if(!salary || salary <= 0){ alert('请如实填写月度劳动报酬，狱方替你保密（因为根本收不到）'); return; }
-  const p = { name, salary, hours, days, mode, startTime };
+  const isEdit = !!loadProfile();
+  const p = { name, salary, hours, days, mode, startTime, weekly };
   localStorage.setItem(LS.profile, JSON.stringify(p));
   if(!localStorage.getItem(LS.firstDay)) localStorage.setItem(LS.firstDay, String(Date.now()));
-  track('register_done', { hours: hours, mode: $('f-mode').value });  // 完成入狱登记（不上报月薪，保护隐私）
+  // 修改信息后：放风时长保留，但每条放风的劳改津贴按新薪资标准重算
+  const ps = perSecond(p);
+  const recs = loadRecords();
+  recs.forEach(r => { r.amt = r.sec * ps; });
+  saveRecords(recs);
+  track(isEdit ? 'profile_edit' : 'register_done', { hours: hours, mode: $('f-mode').value });
   renderHome();
   show('view-home');
 });
@@ -916,6 +923,24 @@ $('scene-row').addEventListener('click', e=>{
 });
 $('btn-shoujian').addEventListener('click', stopTimer);
 $('btn-release').addEventListener('click', ()=>{ currentDocType='release'; track('release_view'); openDoc(docRelease(loadProfile())); });
+// 用当前档案预填登记表，供「修改信息」使用
+function fillRegisterForm(p){
+  if(!p) return;
+  $('f-name').value = (p.name && p.name !== '法外狂徒张三') ? p.name : '';
+  $('f-salary').value = p.salary || '';
+  const parts = (p.startTime || '09:00').split(':');
+  $('f-start-h').value = parts[0];
+  $('f-start-m').value = (parts[1] === '30') ? '30' : '00';
+  $('f-hours').value = p.hours || 8;
+  const wk = p.weekly ? String(p.weekly) : (p.days >= 25 ? '6' : p.days >= 23 ? '5.5' : '5');
+  $('f-mode').value = wk;
+}
+$('link-edit').addEventListener('click', ()=>{
+  fillRegisterForm(loadProfile());
+  $('btn-register').textContent = '保存修改';   // 编辑态下按钮语义更明确
+  track('profile_edit_open');
+  show('view-register');
+});
 $('link-verdict').addEventListener('click', ()=>{ currentDocType='verdict'; track('verdict_view'); openDoc(docVerdict(loadProfile())); });
 $('link-archive').addEventListener('click', ()=>{ track('archive_view'); renderArchive(); show('view-archive'); });
 $('btn-back-home').addEventListener('click', ()=>{ renderHome(); show('view-home'); });
