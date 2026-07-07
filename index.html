@@ -352,10 +352,6 @@
     </p>
 
     <div class="field">
-      <label for="f-name">犯人姓名 <small>（可用化名）</small></label>
-      <input id="f-name" type="text" maxlength="12" placeholder="法外狂徒张三">
-    </div>
-    <div class="field">
       <label for="f-salary">月度劳动报酬（元） <small>（俗称月薪）</small></label>
       <input id="f-salary" type="number" inputmode="decimal" placeholder="例如 12000">
     </div>
@@ -708,7 +704,7 @@ function docVerdict(p){
       <h1 class="doc-title">劳动判决书</h1>
       <div class="doc-no">${docNo('刑')}</div>
       <div class="doc-body">
-        <p>经查，被告人<b>${p.name}</b>，因生活所迫，向本监区投案自首，并主动交代月薪，事实清楚，态度诚恳。现依照《工位服刑条例》，判决如下：</p>
+        <p>经查，被告人因碎银几两，向本监区投案自首，主动交代月薪，事实清楚，态度诚恳。现依照《工位服刑条例》，判决如下：</p>
         <p class="clause">一、被告人于工位监狱服刑，实行<b>${p.mode || '双休制（每周假释两日）'}</b>，每日 <b>${p.startTime || '09:00'}</b> 收监，刑期 <b>${p.hours}</b> 小时；</p>
         <p class="clause">二、服刑期间劳动报酬核定为每月 <b>${Number(p.salary).toLocaleString()}</b> 元（折合日薪 ${daily} 元），一律缓期至发薪日执行；</p>
         <p class="clause">三、准予每日放风。放风期间刑期照计、报酬照发，所得部分记为<b>劳改津贴</b>，照发不误，被告人无需感谢。</p>
@@ -758,7 +754,7 @@ function docRelease(p){
       <h1 class="doc-title">释放证明书</h1>
       <div class="doc-no">${docNo('释')}</div>
       <div class="doc-body">
-        <p>兹证明，罪犯<b>${p.name}</b>于 ${cnDate()} 在工位监狱服刑期满（本日份），现予释放。今日改造情况如下：</p>
+        <p>兹证明，该犯于 ${cnDate()} 在工位监狱服刑期满（本日份），现予释放。今日改造情况如下：</p>
         <p class="clause">一、今日已服刑 <b>${servedTxt}</b>（自 ${p.startTime || '09:00'} 收监起算）；</p>
         <p class="clause">二、放风共计 <b>${recs.length}</b> 次；</p>
         <p class="clause">三、放风时间共计 <b>${totalSec < 60 ? '不足 1' : Math.round(totalSec/60)}</b> 分钟；</p>
@@ -796,7 +792,7 @@ function renderHome(){
   $('tm-pid').textContent = pid(p);
   $('a-pid').textContent = pid(p);
   const hourly = p.salary/p.days/p.hours;
-  $('h-greet').textContent = `${p.name}，今日在押。时薪核定 ${yuan(hourly)}/小时，放风期间照常计酬。`;
+  $('h-greet').textContent = `今日在押。时薪核定 ${yuan(hourly)}/小时，放风期间照常计酬。`;
   $('t-count').textContent = recs.length;
   tickServed();
 }
@@ -920,7 +916,6 @@ async function saveDocImage(){
 
 /* ---------- 事件绑定 ---------- */
 $('btn-register').addEventListener('click', ()=>{
-  const name = $('f-name').value.trim() || '法外狂徒张三';
   const salary = parseFloat($('f-salary').value);
   const hours = parseFloat($('f-hours').value) || 8;
   const weekly = parseFloat($('f-mode').value) || 5;
@@ -930,7 +925,7 @@ $('btn-register').addEventListener('click', ()=>{
   const mode = MODE_TEXT[$('f-mode').value] || MODE_TEXT['5'];
   if(!salary || salary <= 0){ alert('请如实填写月度劳动报酬，狱方替你保密（因为根本收不到）'); return; }
   const isEdit = !!loadProfile();
-  const p = { name, salary, hours, days, mode, startTime, weekly };
+  const p = { salary, hours, days, mode, startTime, weekly };
   localStorage.setItem(LS.profile, JSON.stringify(p));
   if(!localStorage.getItem(LS.firstDay)) localStorage.setItem(LS.firstDay, String(Date.now()));
   // 修改信息后：放风时长保留，但每条放风的劳改津贴按新薪资标准重算
@@ -955,7 +950,6 @@ $('btn-release').addEventListener('click', ()=>{ currentDocType='release'; track
 // 用当前档案预填登记表，供「修改信息」使用
 function fillRegisterForm(p){
   if(!p) return;
-  $('f-name').value = (p.name && p.name !== '法外狂徒张三') ? p.name : '';
   $('f-salary').value = p.salary || '';
   const parts = (p.startTime || '09:00').split(':');
   $('f-start-h').value = parts[0];
