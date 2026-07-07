@@ -17,6 +17,14 @@
   })(window, document, "clarity", "script", "ximnmcgau4");
 </script>
 <style>
+  /* 自托管思源宋体子集：全设备统一公文宋体（含 GB2312 常用字，变量字重） */
+  @font-face{
+    font-family:'Noto Serif SC';
+    src:url('./NotoSerifSC-subset.woff2') format('woff2');
+    font-weight:200 900;
+    font-style:normal;
+    font-display:swap;
+  }
   :root{
     --paper:#F7F5F0;
     --paper-deep:#EFEBE2;
@@ -25,8 +33,8 @@
     --seal:#C0281E;
     --seal-weak:rgba(192,40,30,.08);
     --line:rgba(28,27,24,.16);
-    --font-fang:"FangSong","STFangsong","仿宋","FangSong_GB2312","Noto Serif SC","Songti SC","SimSun",serif;
-    --font-song:"Songti SC","SimSun","STSong","Noto Serif SC",serif;
+    --font-fang:"Noto Serif SC","FangSong","STFangsong","仿宋","Songti SC","SimSun",serif;
+    --font-song:"Noto Serif SC","Songti SC","SimSun","STSong",serif;
     --font-hei:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -193,10 +201,13 @@
   .hero-title{font-family:var(--font-song);font-weight:700;font-size:44px;letter-spacing:10px;text-indent:10px;margin:8px 0 8px;}
   .hero-tag{font-size:13.5px;letter-spacing:3px;text-indent:3px;color:var(--ink);margin-bottom:16px;}
   .hero-intro{
-    text-align:justify;font-size:14px;line-height:1.95;color:var(--ink-soft);
+    text-align:left;font-size:14px;line-height:1.9;color:var(--ink-soft);
     border-top:1px solid var(--line);border-bottom:1px solid var(--line);
     padding:15px 4px;margin:0;
   }
+  .hero-lead{margin-bottom:11px;color:var(--ink);}
+  .hero-term{margin-bottom:9px;padding-left:2.4em;text-indent:-2.4em;}
+  .hero-term:last-child{margin-bottom:0;}
   .hero-intro b{color:var(--ink);font-weight:400;border-bottom:1px solid var(--seal);padding-bottom:1px;}
   @media (max-width:899px){
     .hero-org{display:none;}
@@ -328,7 +339,12 @@
       <div class="hero-org">牛马监区管理委员会<span class="hero-sub">NIUMA CORRECTIONAL PARODY BUREAU</span></div>
       <h1 class="hero-title">工位服刑</h1>
       <div class="hero-tag">上班如服刑 · 放风即自由</div>
-      <p class="hero-intro">本委员会现将在押待遇明示如下：其一，<b>服刑报酬按秒计发</b>，碎银几两随光阴实时到账，今日赚得几何，一目了然；其二，准予随时<b>放风</b>，如厕、茶水、开会神游皆可自选，放风时长照常折算为你的<b>劳改津贴</b>；其三，<b>服刑档案一律就地羁押</b>，全部记录只存于你本人设备之内，绝不上传、绝不外传——毕竟本监区穷得连数据库都没有。</p>
+      <div class="hero-intro">
+        <p class="hero-lead">本委员会现将在押待遇明示如下：</p>
+        <p class="hero-term">其一，<b>服刑报酬按秒计发</b>，碎银几两随光阴实时到账，今日赚得几何，一目了然。</p>
+        <p class="hero-term">其二，准予随时<b>放风</b>，如厕、茶水、开会神游皆可自选，放风时长照常折算为你的<b>劳改津贴</b>。</p>
+        <p class="hero-term">其三，<b>服刑档案一律就地羁押</b>，全部记录只存于你本人设备之内，绝不上传，绝不外传。</p>
+      </div>
     </div>
     <h1 class="doc-title" style="font-size:22px;letter-spacing:6px;margin-top:26px;">入监登记表</h1>
     <p style="text-align:center;color:var(--ink-soft);font-size:13px;letter-spacing:1px;margin:-2px 0 24px;">
