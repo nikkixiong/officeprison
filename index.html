@@ -186,24 +186,20 @@
   .slogan::before,.slogan::after{content:"— ";color:var(--line);}
   .slogan::after{content:" —";}
 
-  /* ===== 封面页 ===== */
-  .cover{text-align:center;}
-  .cover-emblem{width:82px;height:82px;margin:0 auto 16px;display:block;}
-  .cover-kicker{font-family:var(--font-song);color:var(--seal);font-size:14px;letter-spacing:5px;text-indent:5px;}
-  .cover-en{color:var(--ink-soft);font-size:10px;letter-spacing:2px;margin-top:5px;}
-  .cover-title{font-family:var(--font-song);font-weight:700;font-size:50px;letter-spacing:12px;text-indent:12px;margin:16px 0 10px;}
-  .cover-tag{font-size:14px;letter-spacing:3px;text-indent:3px;color:var(--ink);margin-bottom:22px;}
-  .cover-intro{
-    text-align:justify;font-size:14.5px;line-height:2;color:var(--ink-soft);
+  /* ===== 登记页顶部介绍 ===== */
+  .reg-hero{text-align:center;}
+  .hero-org{font-family:var(--font-song);color:var(--seal);font-size:13px;letter-spacing:4px;text-indent:4px;}
+  .hero-sub{display:block;color:var(--ink-soft);font-size:9px;letter-spacing:2px;text-indent:2px;margin-top:4px;font-family:var(--font-fang);}
+  .hero-title{font-family:var(--font-song);font-weight:700;font-size:44px;letter-spacing:10px;text-indent:10px;margin:8px 0 8px;}
+  .hero-tag{font-size:13.5px;letter-spacing:3px;text-indent:3px;color:var(--ink);margin-bottom:16px;}
+  .hero-intro{
+    text-align:justify;font-size:14px;line-height:1.95;color:var(--ink-soft);
     border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-    padding:18px 2px;margin:0 0 20px;
+    padding:15px 4px;margin:0;
   }
-  .cover-intro b{color:var(--ink);font-weight:400;border-bottom:1px solid var(--seal);padding-bottom:1px;}
-  .cover-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:26px;}
-  .cover-chips .chip{cursor:default;}
-  .cover-note{margin-top:16px;font-size:11px;letter-spacing:1px;color:var(--ink-soft);opacity:.85;}
+  .hero-intro b{color:var(--ink);font-weight:400;border-bottom:1px solid var(--seal);padding-bottom:1px;}
   @media (max-width:899px){
-    #view-cover.active{display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 78px);}
+    .hero-org{display:none;}
   }
 
   /* ===== 弹层（文书展示 / 图片保存） ===== */
@@ -294,12 +290,11 @@
     .timer-clock{font-size:96px;margin-top:44px;}
     .slogan{max-width:380px;}
     .overlay .panel{max-width:520px;}
-    /* 封面：左侧栏已展示「工位服刑」品牌，右侧不再重复大标题 */
-    .cover-emblem,.cover-title,.cover-en{display:none;}
-    .cover-kicker{font-size:16px;}
-    .cover-tag{font-size:16px;margin-bottom:28px;}
-    .cover-intro{font-size:16px;padding:22px 4px;}
-    .cover-chips .chip{font-size:14px;padding:8px 16px;}
+    /* 顶部介绍：左侧栏已展示「工位服刑」品牌，右侧不再重复大标题 */
+    .hero-title{display:none;}
+    .hero-org{font-size:15px;}
+    .hero-tag{font-size:16px;margin-bottom:20px;}
+    .hero-intro{font-size:16px;padding:20px 4px;}
   }
 
 </style>
@@ -325,39 +320,16 @@
 
   <main class="stage">
 
-  <!-- ============ 视图零：封面 ============ -->
-  <section class="view" id="view-cover">
-    <div class="cover">
-      <svg class="cover-emblem" viewBox="0 0 200 200" aria-hidden="true">
-        <circle cx="100" cy="100" r="92" fill="none" stroke="var(--seal)" stroke-width="6"/>
-        <text x="100" y="120" text-anchor="middle" fill="var(--seal)" font-size="62" font-family="Songti SC,SimSun,serif" font-weight="bold">鱼</text>
-        <text x="100" y="162" text-anchor="middle" fill="var(--seal)" font-size="15" font-family="Songti SC,SimSun,serif" letter-spacing="3">整活专用章</text>
-      </svg>
-      <div class="cover-kicker">牛马监区管理委员会</div>
-      <div class="cover-en">NIUMA CORRECTIONAL PARODY BUREAU</div>
-      <h1 class="cover-title">工位服刑</h1>
-      <div class="cover-tag">上班如服刑 · 放风即自由</div>
-      <p class="cover-intro">
-        本委员会郑重宣布：即日起，上班一律按<b>服刑</b>论处。入狱登记后，你将领取一纸<b>《劳动判决书》</b>；摸鱼时点「放风」计时，实时累计你的<b>国家赔偿</b>；下班可申领<b>《释放证明》</b>。一本正经的公文外壳，包着荒谬绝伦的整活内核——所有笑点，皆源于此。
-      </p>
-      <div class="cover-chips">
-        <span class="chip">入狱领判决书</span>
-        <span class="chip">放风赚国家赔偿</span>
-        <span class="chip">刑满领释放证明</span>
-      </div>
-      <button class="btn red" id="btn-enter">自愿投案 · 开始服刑</button>
-      <p class="cover-note">纯属整活 · 无需注册 · 数据仅存于你自己的手机</p>
-    </div>
-  </section>
-
-  <!-- ============ 视图一：入狱登记 ============ -->
+  <!-- ============ 视图一：入狱登记（顶部介绍 + 表单同页） ============ -->
   <section class="view" id="view-register">
-    <div class="masthead" style="margin:0;">
-      <div class="org">牛马监区管理委员会</div>
-      <div class="sub">NIUMA CORRECTIONAL PARODY BUREAU</div>
+    <div class="reg-hero">
+      <div class="hero-org">牛马监区管理委员会<span class="hero-sub">NIUMA CORRECTIONAL PARODY BUREAU</span></div>
+      <h1 class="hero-title">工位服刑</h1>
+      <div class="hero-tag">上班如服刑 · 放风即自由</div>
+      <p class="hero-intro">本委员会郑重宣布：即日起，上班一律按<b>服刑</b>论处。入狱登记后，你将领取一纸<b>《劳动判决书》</b>；摸鱼时点「放风」计时，实时累计你的<b>国家赔偿</b>；下班可申领<b>《释放证明》</b>。</p>
     </div>
-    <h1 class="doc-title" style="font-size:22px;letter-spacing:6px;">入监登记表</h1>
-    <p style="text-align:center;color:var(--ink-soft);font-size:13px;letter-spacing:1px;margin:-2px 0 26px;">
+    <h1 class="doc-title" style="font-size:22px;letter-spacing:6px;margin-top:26px;">入监登记表</h1>
+    <p style="text-align:center;color:var(--ink-soft);font-size:13px;letter-spacing:1px;margin:-2px 0 24px;">
       如实填写，即刻收监
     </p>
 
@@ -922,7 +894,6 @@ $('btn-register').addEventListener('click', ()=>{
   show('view-home');
 });
 
-$('btn-enter').addEventListener('click', ()=>{ track('cover_enter'); show('view-register'); });  // 封面 → 入狱登记
 $('btn-slip-close').addEventListener('click', ()=>$('slip-overlay').classList.remove('active'));
 
 $('btn-fangfeng').addEventListener('click', startTimer);
@@ -988,7 +959,7 @@ function tickServed(){
   }
   const p = loadProfile();
   if(p){ renderHome(); show('view-home'); }
-  else{ show('view-cover'); }
+  else{ show('view-register'); }
   tickServed();
   setInterval(tickServed, 1000);
 })();
