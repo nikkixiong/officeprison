@@ -409,7 +409,6 @@
 
     <div class="today-board">
       <div><b id="t-count">0</b><span>今日放风（次）</span></div>
-      <div><b id="t-solo">0</b><span>单独放风（次）</span></div>
       <div><b id="t-rate">0%</b><span>白拿率</span></div>
     </div>
 
@@ -455,7 +454,6 @@
     <div class="stats-list">
       <div class="row"><span>累计服刑</span><b id="a-days">0 天</b></div>
       <div class="row"><span>累计放风</span><b id="a-count">0 次</b></div>
-      <div class="row"><span>其中单独放风</span><b id="a-solo">0 次</b></div>
       <div class="row"><span>累计放风时间</span><b id="a-min">0 分钟</b></div>
       <div class="row"><span>累计劳改津贴</span><b id="a-money">¥0.00</b></div>
       <div class="row"><span>单次放风最长纪录</span><b id="a-max">—</b></div>
@@ -602,19 +600,19 @@ const RULING_FF = {  // 普通放风锐评
     '该犯已放风至化境，人在工位，魂游四海，实属罕见。'
   ]
 };
-const RULING_DD = {  // 单独放风锐评
+const RULING_DD = {  // 如厕放风锐评
   short: [ // <5min
     '速战速决，肠胃与觉悟同样过硬。',
-    '本次单独放风效率极高，未浪费津贴一分一毫，堪称模范。',
+    '本次如厕效率极高，未浪费津贴一分一毫，堪称模范。',
     '来去如风，深藏功与名，狱方甚至没发现你走过。'
   ],
   mid: [ // 5-15min
     '该犯如厕态度端正，蹲姿标准，建议全监区推广学习。',
-    '单独放风期间保持静默，未暴露目标，予以嘉奖。',
+    '如厕期间保持静默，未暴露目标，予以嘉奖。',
     '一人一坑一手机，改造生活有滋有味。'
   ],
   long: [ // >15min
-    '单独放风逾一刻钟，腿麻属于工伤，津贴双倍抚慰（口头）。',
+    '如厕逾一刻钟，腿麻属于工伤，津贴双倍抚慰（口头）。',
     '该犯与马桶建立了深厚友谊，狱方深表欣慰。',
     '蹲坑时长感人，温馨提示：肛肠健康也是改造本钱。'
   ]
@@ -623,7 +621,7 @@ const RULING_DD = {  // 单独放风锐评
 /* 放风场景定义 */
 const SCENES = {
   ff:      { label:'工位神游', doc:'放风（工位神游）' },
-  dd:      { label:'如厕',     doc:'单独放风（如厕）' },
+  dd:      { label:'如厕',     doc:'放风（如厕）' },
   water:   { label:'茶水间',   doc:'放风（茶水间转移）' },
   chat:    { label:'狱友畅聊', doc:'放风（狱友交流）' },
   meeting: { label:'会议走神', doc:'提审期间放风（会议走神）' },
@@ -739,7 +737,6 @@ function docRelease(p){
   const recs = todayRecords();
   const total = recs.reduce((s,r)=>s+r.amt,0);
   const totalSec = recs.reduce((s,r)=>s+r.sec,0);
-  const solo = recs.filter(r=>r.type==='dd').length;
   // 依据每日收监时间（设备本地时间）计算今日已服刑
   const st = (p.startTime || '09:00').split(':');
   const startDate = new Date();
@@ -761,7 +758,7 @@ function docRelease(p){
       <div class="doc-body">
         <p>兹证明，罪犯<b>${p.name}</b>于 ${cnDate()} 在工位监狱服刑期满（本日份），现予释放。今日改造情况如下：</p>
         <p class="clause">一、今日已服刑 <b>${servedTxt}</b>（自 ${p.startTime || '09:00'} 收监起算）；</p>
-        <p class="clause">二、放风共计 <b>${recs.length}</b> 次，其中单独放风 <b>${solo}</b> 次；</p>
+        <p class="clause">二、放风共计 <b>${recs.length}</b> 次；</p>
         <p class="clause">三、放风时间共计 <b>${totalSec < 60 ? '不足 1' : Math.round(totalSec/60)}</b> 分钟；</p>
         <p class="clause">四、今日服刑报酬 <b>${yuan(Math.min(servedSec, (p.hours||8)*3600) / 3600 * (p.salary/p.days/p.hours))}</b>，其中劳改津贴（放风白拿）<em class="amt">${yuan(total)}</em>，白拿率 <b>${(()=>{const pay=Math.min(servedSec,(p.hours||8)*3600)/3600*(p.salary/p.days/p.hours);return pay>0?Math.min(100,total/pay*100).toFixed(1)+'%':'—';})()}</b>。</p>
         <p>狱方评语：${rand(RELEASE_COMMENTS)}</p>
@@ -799,7 +796,6 @@ function renderHome(){
   const hourly = p.salary/p.days/p.hours;
   $('h-greet').textContent = `${p.name}，今日在押。时薪核定 ${yuan(hourly)}/小时，放风期间照常计酬。`;
   $('t-count').textContent = recs.length;
-  $('t-solo').textContent = recs.filter(r=>r.type==='dd').length;
   tickServed();
 }
 
@@ -812,7 +808,6 @@ function renderArchive(){
   const maxRec = recs.reduce((m,r)=>Math.max(m,r.sec),0);
   $('a-days').textContent = days + ' 天';
   $('a-count').textContent = recs.length + ' 次';
-  $('a-solo').textContent = recs.filter(r=>r.type==='dd').length + ' 次';
   $('a-min').textContent = Math.round(totalSec/60) + ' 分钟';
   $('a-money').textContent = yuan(recs.reduce((s,r)=>s+r.amt,0));
   $('a-max').textContent = maxRec ? fmtDur(maxRec) : '—';
@@ -856,7 +851,7 @@ function stopTimer(){
   const recs = loadRecords();
   recs.push({ t: Date.now(), day: todayKey(), type: scene, sec, amt });
   saveRecords(recs);
-  // 收监：上报放风场景 + 时长分桶，用于验证"单独放风/厕所场景"假设
+  // 收监：上报放风场景 + 时长分桶，用于分析各场景（含如厕）使用占比
   track('fangfeng_end', { scene: scene, is_solo: scene === 'dd' ? 1 : 0, duration: durBucket(sec) });
   timer.running = false;
   renderHome();
