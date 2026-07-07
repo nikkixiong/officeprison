@@ -816,6 +816,12 @@ function renderArchive(){
 }
 
 /* ---------- 计时器 ---------- */
+const MAX_FANGFENG_SEC = 4 * 3600;  // 单次放风上限：超过自动收监（防止忘收监挂太久）
+const ESCAPE_COMMENTS = [           // 触顶上限时的锐评（文案里的"四小时"与上限保持一致）
+  '放风已逾四小时，该犯疑似越狱，狱方已强制收监归案。',
+  '长时间脱离监控，系统判定为越狱未遂，予以自动收监。',
+  '放风时间离谱，狱方一度以为你已获假释，现予强制收监。'
+];
 let timer = { running:false, scene:'ff', start:0, itv:null, sloganItv:null };
 
 function setScene(scene){
@@ -834,6 +840,7 @@ function runTimerTicks(){
   const ps = perSecond(loadProfile());
   const paint = ()=>{
     const sec = (Date.now()-timer.start)/1000;
+    if(sec >= MAX_FANGFENG_SEC){ stopTimer(); return; }  // 触顶自动收监
     $('tm-clock').textContent = fmtClock(sec);
     $('tm-money').textContent = yuan(sec*ps);
   };
@@ -866,7 +873,9 @@ function stopTimer(){
   clearInterval(timer.itv); clearInterval(timer.sloganItv);
   localStorage.removeItem(LS.active);  // 放风结束，清除进行中状态
   const p = loadProfile();
-  const sec = Math.max(1, Math.floor((Date.now()-timer.start)/1000));
+  let sec = Math.max(1, Math.floor((Date.now()-timer.start)/1000));
+  const escaped = sec > MAX_FANGFENG_SEC;   // 超过上限 → 判定"越狱"，时长封顶
+  if(escaped) sec = MAX_FANGFENG_SEC;
   const amt = sec * perSecond(p);
   const scene = timer.scene;
   const recs = loadRecords();
@@ -880,7 +889,7 @@ function stopTimer(){
   $('s-scene').textContent = (SCENES[scene] || SCENES.ff).doc;
   $('s-dur').textContent = fmtDur(sec);
   $('s-amt').textContent = '+' + yuan(amt);
-  $('s-comment').textContent = getComment(scene, sec);
+  $('s-comment').textContent = escaped ? rand(ESCAPE_COMMENTS) : getComment(scene, sec);
   $('slip-overlay').classList.add('active');
 }
 
