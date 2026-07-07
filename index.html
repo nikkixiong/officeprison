@@ -383,7 +383,7 @@
       隐私告知：以上信息仅保存在你自己的手机/浏览器里，不会上传。可随时在「服刑档案」中一键销毁。
     </div>
 
-    <button class="btn red" id="btn-register">自愿投案 · 领取判决书</button>
+    <button class="btn red" id="btn-register">自愿投案</button>
   </section>
 
   <!-- ============ 视图二：主页 / 监区 ============ -->
@@ -936,6 +936,10 @@ $('btn-register').addEventListener('click', ()=>{
   track(isEdit ? 'profile_edit' : 'register_done', { hours: hours, mode: $('f-mode').value });
   renderHome();
   show('view-home');
+});
+// 登记表内回车即提交
+['f-salary','f-hours'].forEach(id=>{
+  $(id).addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); $('btn-register').click(); } });
 });
 
 $('btn-slip-close').addEventListener('click', ()=>$('slip-overlay').classList.remove('active'));
