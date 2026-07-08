@@ -539,6 +539,17 @@
           <div class="focus-note" id="fc-note">狱警正在监视你的改造，专心劳改，切勿摸鱼。</div>
           <button class="btn ghost" id="btn-focus-stop" style="margin-top:22px;">提前收工（结束劳改）</button>
         </div>
+
+        <div id="fc-break" style="display:none;">
+          <div class="focus-note">劳改期满，狱方准予带薪放风，好好喘口气。</div>
+          <button class="linklike" id="btn-break-skip" style="margin-top:16px;">提前结束放风，返回监区</button>
+        </div>
+
+        <div id="fc-choice" style="display:none;">
+          <div class="focus-note">放风结束！要继续沉浸式劳改，还是返回监区？</div>
+          <button class="btn red" id="btn-focus-continue" style="margin-top:22px;">继续沉浸式劳改</button>
+          <button class="btn ghost" id="btn-focus-exit" style="margin-top:14px;">返回监区</button>
+        </div>
       </div>
     </div>
   </section>
@@ -778,7 +789,8 @@ const SCENES = {
   food:    { label:'越狱觅食', doc:'短暂越狱（外出觅食）' },
   surf:    { label:'网上冲浪', doc:'狱内放风（网上冲浪）' },
   nap:     { label:'工位补觉', doc:'监舍小憩（工位补觉）' },
-  walk:    { label:'园区遛弯', doc:'放风（园区遛弯）' }
+  walk:    { label:'园区遛弯', doc:'放风（园区遛弯）' },
+  tomato:  { label:'番茄钟放风', doc:'放风（番茄钟带薪休息）' }
 };
 const SCENE_COMMENTS = {
   water: [
@@ -1197,6 +1209,8 @@ const GUARD_LINES = [
   '眼神一飘，加刑警告。','认真点，早劳改早出狱。'
 ];
 let focus = { running:false, done:false, scene:FOCUS_SCENES[0], dur:25, remain:0, itv:null, guardItv:null };
+const BREAK_SEC = 5 * 60;                 // 番茄钟：专注结束自动带薪放风 5 分钟
+let breakRemain = 0, breakItv = null;
 
 function renderFocusChips(){
   const custom = FOCUS_SCENES.indexOf(focus.scene) < 0;
@@ -1209,9 +1223,11 @@ function renderFocusChips(){
   $('fc-clock').textContent = pad(focus.dur) + ':00';
 }
 function stopFocusTimers(){ clearInterval(focus.itv); clearInterval(focus.guardItv); focus.itv=null; focus.guardItv=null; }
+function stopBreakTimer(){ clearInterval(breakItv); breakItv=null; }
 function enterFocus(){
-  stopFocusTimers(); focus.running = false; focus.done = false;
+  stopFocusTimers(); stopBreakTimer(); focus.running = false; focus.done = false;
   $('fc-setup').style.display = ''; $('fc-running').style.display = 'none';
+  $('fc-break').style.display = 'none'; $('fc-choice').style.display = 'none';
   $('fc-custom-input').style.display = (FOCUS_SCENES.indexOf(focus.scene) < 0) ? '' : 'none';
   $('fc-dur-input').style.display = (FOCUS_DURS.indexOf(focus.dur) < 0) ? '' : 'none';
   $('btn-focus-stop').textContent = '提前收工（结束劳改）';
@@ -1231,12 +1247,10 @@ function startFocus(){
   focus.guardItv = setInterval(guardVisit, 20000);    // 之后每 20 秒
 }
 function completeFocus(){
-  stopFocusTimers(); focus.remain = 0; focus.done = true;
+  stopFocusTimers(); focus.remain = 0; focus.done = true; focus.running = false;
   saveFocusRec(focus.dur * 60, focus.scene, true);    // 记录完整劳改时长
-  $('fc-clock').textContent = '00:00';
-  $('fc-note').textContent = '沉浸式劳改期满！本次改造圆满完成，狱方予以表扬，准予放风片刻。';
-  $('btn-focus-stop').textContent = '领取劳改功勋 · 返回监区';
   track('focus_done', { dur: focus.dur });
+  startBreak();                                       // 番茄钟：自动进入带薪放风
 }
 function guardVisit(){
   const g = $('guard'), say = $('guard-say');
@@ -1245,18 +1259,56 @@ function guardVisit(){
   say.classList.add('show');
   setTimeout(()=>say.classList.remove('show'), 3200);
 }
-function endFocus(){   // 结束劳改（提前收工 / 领取功勋后返回）
-  if(focus.running && !focus.done){                   // 提前收工：记录已劳改时长
+function endFocus(){   // 提前收工：结束劳改阶段，直接返回监区
+  if(focus.running && !focus.done){
     saveFocusRec(focus.dur * 60 - focus.remain, focus.scene, false);
   }
   stopFocusTimers(); focus.running = false;
   renderHome(); show('view-home');
 }
 
+/* ---------- 番茄钟：专注结束后自动带薪放风 5 分钟 ---------- */
+function paintBreak(){ $('fc-clock').textContent = pad(Math.floor(breakRemain/60)) + ':' + pad(breakRemain % 60); }
+function startBreak(){
+  breakRemain = BREAK_SEC;
+  $('fc-running').style.display = 'none';
+  $('fc-break').style.display = '';
+  $('fc-choice').style.display = 'none';
+  paintBreak();
+  track('break_start');
+  breakItv = setInterval(()=>{ breakRemain--; if(breakRemain <= 0){ finishBreak(true); return; } paintBreak(); }, 1000);
+}
+function finishBreak(full){
+  stopBreakTimer();
+  const elapsed = full ? BREAK_SEC : (BREAK_SEC - breakRemain);
+  if(elapsed >= 3){
+    const p = loadProfile();
+    const recs = loadRecords();
+    recs.push({ t: Date.now(), day: todayKey(), type: 'tomato', sec: elapsed, amt: elapsed * perSecond(p) });
+    saveRecords(recs);
+  }
+  if(full){
+    track('break_done');
+    $('fc-clock').textContent = '00:00';
+    $('fc-break').style.display = 'none';
+    $('fc-choice').style.display = '';
+  } else {
+    track('break_skip');
+    renderHome(); show('view-home');
+  }
+}
+function continueFocus(){    // 继续沉浸式劳改：回到设置页，时长重置为默认 25 分钟（可再改）
+  focus.dur = 25;
+  enterFocus();
+}
+
 $('btn-focus').addEventListener('click', enterFocus);
 $('btn-focus-back').addEventListener('click', ()=>{ stopFocusTimers(); show('view-home'); });
 $('btn-focus-start').addEventListener('click', startFocus);
 $('btn-focus-stop').addEventListener('click', endFocus);
+$('btn-break-skip').addEventListener('click', ()=>finishBreak(false));
+$('btn-focus-continue').addEventListener('click', continueFocus);
+$('btn-focus-exit').addEventListener('click', ()=>{ renderHome(); show('view-home'); });
 $('fc-scenes').addEventListener('click', e=>{
   const c = e.target.closest('.chip'); if(!c) return;
   const inp = $('fc-custom-input');
