@@ -134,6 +134,37 @@
   .rw-foot-l b{font-size:11.5px;color:#3a3a3a;}
   .rw-foot-r{font-size:10.5px;color:#9a9a9a;letter-spacing:.5px;white-space:nowrap;flex-shrink:0;margin-left:10px;}
 
+  /* ===== 沉浸式劳改（番茄钟 · 监狱牢房） ===== */
+  .btn-hint{display:block;font-family:var(--font-fang);font-size:11px;font-weight:400;letter-spacing:1px;text-indent:0;color:var(--ink-soft);margin-top:4px;}
+  #view-focus{padding:0;}
+  .cell{position:relative;min-height:88vh;background:#141310;color:#E9E5DB;display:flex;flex-direction:column;overflow:hidden;}
+  .cell-window{position:relative;height:118px;overflow:hidden;background:linear-gradient(#0b0a08,#211e18);border-bottom:3px solid #000;}
+  .cell-bars{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(to right,
+      transparent 0 28px, #423d31 28px 30px, #211e17 30px 35px, #060504 35px 37px);}
+  .guard{position:absolute;top:50%;left:-72px;transform:translateY(-50%);font-size:54px;line-height:1;filter:grayscale(.2);}
+  .guard.pass{animation:guardPass 5.5s ease-in-out;}
+  @keyframes guardPass{0%{left:-72px;}22%{left:42%;}68%{left:42%;}100%{left:106%;}}
+  .guard-say{max-width:80%;margin:14px auto 0;background:#E9E5DB;color:#1c1b18;padding:9px 15px;border-radius:6px;
+    font-size:13.5px;letter-spacing:.5px;text-align:center;position:relative;opacity:0;transform:translateY(-6px);
+    transition:opacity .3s ease,transform .3s ease;}
+  .guard-say.show{opacity:1;transform:none;}
+  .guard-say::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top:0;border-bottom-color:#E9E5DB;}
+  .focus-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 22px 34px;text-align:center;}
+  .focus-title{font-family:var(--font-song);font-weight:700;font-size:22px;letter-spacing:6px;text-indent:6px;color:#E9E5DB;}
+  .focus-reason{margin-top:10px;font-size:13px;color:#9a9488;letter-spacing:1px;}
+  .focus-reason b{color:#E9E5DB;font-weight:400;}
+  .focus-clock{font-family:var(--font-song);font-variant-numeric:tabular-nums;font-size:74px;font-weight:700;letter-spacing:2px;margin:18px 0 6px;color:#fff;}
+  .fc-lab{font-size:12px;color:#8a857a;letter-spacing:2px;margin:16px 0 10px;}
+  .fc-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:340px;margin:0 auto;}
+  .fc-chips .chip{background:transparent;color:#cfcabb;border-color:#3d392f;}
+  .fc-chips .chip.on{background:rgba(192,40,30,.2);border-color:var(--seal);color:#fff;font-weight:700;}
+  .focus-note{font-size:13px;color:#9a9488;letter-spacing:1px;line-height:1.9;max-width:300px;margin:0 auto;}
+  #view-focus .btn.ghost{color:#E9E5DB;border-color:#5a564c;background:transparent;}
+  #view-focus .linklike{color:#9a9488;}
+  @media (min-width:900px){ .cell{min-height:82vh;} }
+
   /* 印章 */
   .seal{position:absolute;right:-4px;bottom:-24px;width:104px;height:104px;
     transform:rotate(-12deg);opacity:.92;pointer-events:none;}
@@ -460,13 +491,45 @@
     </div>
 
     <button class="btn red" id="btn-fangfeng">开始放风</button>
-    <button class="btn ghost small" id="btn-release" style="margin-top:22px;">申请今日释放</button>
+    <button class="btn ghost" id="btn-focus" style="margin-top:14px;">沉浸式劳改<span class="btn-hint">番茄钟 · 专注不摸鱼</span></button>
+    <button class="btn ghost small" id="btn-release" style="margin-top:14px;">申请今日释放</button>
 
     <div class="homefoot">
       <button class="linklike" id="link-archive">服刑档案</button>
       <button class="linklike" id="link-weekly">改造周报</button>
       <button class="linklike" id="link-edit">修改信息</button>
       <button class="linklike" id="link-verdict">查看判决书</button>
+    </div>
+  </section>
+
+  <!-- ============ 视图五：沉浸式劳改（番茄钟） ============ -->
+  <section class="view" id="view-focus">
+    <div class="cell">
+      <div class="cell-window">
+        <div class="guard" id="guard">👮</div>
+        <div class="cell-bars"></div>
+      </div>
+      <div class="guard-say" id="guard-say"></div>
+
+      <div class="focus-main">
+        <div class="focus-title">沉浸式劳改</div>
+        <div class="focus-reason">劳改事由：<b id="fc-reason">撰写悔过材料</b></div>
+        <div class="focus-clock" id="fc-clock">25:00</div>
+
+        <div id="fc-setup">
+          <div class="fc-lab">选择劳改场景</div>
+          <div class="fc-chips" id="fc-scenes"></div>
+          <div class="fc-lab">沉浸时长（分钟）</div>
+          <div class="fc-chips" id="fc-durs"></div>
+          <button class="btn red" id="btn-focus-start" style="margin-top:22px;">开始沉浸式劳改</button>
+          <button class="linklike" id="btn-focus-back" style="margin-top:16px;">返回监区</button>
+        </div>
+
+        <div id="fc-running" style="display:none;">
+          <div class="focus-note" id="fc-note">狱警正在监视你的改造，专心劳改，切勿摸鱼。</div>
+          <button class="btn ghost" id="btn-focus-stop" style="margin-top:22px;">提前收工（结束劳改）</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -540,7 +603,7 @@
       <div id="doc-holder"></div>
       <div class="actions">
         <button class="btn red small" id="btn-save-img">保存文书图片</button>
-        <button class="btn small" id="btn-doc-close" style="background:#fff;color:var(--ink);border-color:#fff;">收好了，返回</button>
+        <button class="btn small" id="btn-doc-close" style="background:#fff;color:var(--ink);border-color:#fff;">嗯嗯好哒收到，返回</button>
       </div>
     </div>
   </div>
@@ -1079,6 +1142,64 @@ $('scene-row').addEventListener('click', e=>{
 });
 $('btn-shoujian').addEventListener('click', stopTimer);
 $('btn-release').addEventListener('click', ()=>{ currentDocType='release'; track('release_view'); openDoc(docRelease(loadProfile())); });
+
+/* ---------- 沉浸式劳改（番茄钟 · 监狱专注模式） ---------- */
+const FOCUS_SCENES = ['撰写悔过材料','与外方势力周旋','列席提审大会','敲击脱逃代码','绘制越狱蓝图','狱内紧急传讯'];
+const FOCUS_DURS = [15, 25, 45, 60];
+const GUARD_LINES = [
+  '在认真劳改吗？','抬起头，让本狱警看看你的改造态度。','手别停，材料写起来。',
+  '又想摸鱼？本狱警盯着你呢。','改造进度不错，继续保持。','这一趟没抓到你走神，算你识相。',
+  '眼神一飘，加刑警告。','认真点，早劳改早出狱。'
+];
+let focus = { running:false, scene:0, dur:25, remain:0, itv:null, guardItv:null };
+
+function renderFocusChips(){
+  $('fc-scenes').innerHTML = FOCUS_SCENES.map((s,i)=>`<button class="chip${i===focus.scene?' on':''}" data-fs="${i}">${s}</button>`).join('');
+  $('fc-durs').innerHTML = FOCUS_DURS.map(d=>`<button class="chip${d===focus.dur?' on':''}" data-fd="${d}">${d}</button>`).join('');
+  $('fc-reason').textContent = FOCUS_SCENES[focus.scene];
+  $('fc-clock').textContent = pad(focus.dur) + ':00';
+}
+function stopFocusTimers(){ clearInterval(focus.itv); clearInterval(focus.guardItv); focus.itv=null; focus.guardItv=null; }
+function enterFocus(){
+  stopFocusTimers(); focus.running = false;
+  $('fc-setup').style.display = ''; $('fc-running').style.display = 'none';
+  $('btn-focus-stop').textContent = '提前收工（结束劳改）';
+  renderFocusChips();
+  show('view-focus');
+}
+function paintFocus(){ $('fc-clock').textContent = pad(Math.floor(focus.remain/60)) + ':' + pad(focus.remain % 60); }
+function startFocus(){
+  focus.running = true; focus.remain = focus.dur * 60;
+  $('fc-setup').style.display = 'none'; $('fc-running').style.display = '';
+  $('fc-note').textContent = '狱警正在监视你的改造，专心劳改，切勿摸鱼。';
+  $('btn-focus-stop').textContent = '提前收工（结束劳改）';
+  paintFocus();
+  track('focus_start', { scene: focus.scene, dur: focus.dur });
+  focus.itv = setInterval(()=>{ focus.remain--; if(focus.remain <= 0){ completeFocus(); return; } paintFocus(); }, 1000);
+  setTimeout(guardVisit, 8000);                       // 首次巡查
+  focus.guardItv = setInterval(guardVisit, 20000);    // 之后每 20 秒
+}
+function completeFocus(){
+  stopFocusTimers(); focus.remain = 0; $('fc-clock').textContent = '00:00';
+  $('fc-note').textContent = '沉浸式劳改期满！本次改造圆满完成，狱方予以表扬，准予放风片刻。';
+  $('btn-focus-stop').textContent = '领取劳改功勋 · 返回监区';
+  track('focus_done', { dur: focus.dur });
+}
+function guardVisit(){
+  const g = $('guard'), say = $('guard-say');
+  say.textContent = rand(GUARD_LINES);
+  g.classList.remove('pass'); void g.offsetWidth; g.classList.add('pass');
+  say.classList.add('show');
+  setTimeout(()=>say.classList.remove('show'), 3200);
+}
+function exitFocus(){ stopFocusTimers(); focus.running = false; renderHome(); show('view-home'); }
+
+$('btn-focus').addEventListener('click', enterFocus);
+$('btn-focus-back').addEventListener('click', ()=>{ stopFocusTimers(); show('view-home'); });
+$('btn-focus-start').addEventListener('click', startFocus);
+$('btn-focus-stop').addEventListener('click', exitFocus);
+$('fc-scenes').addEventListener('click', e=>{ const c=e.target.closest('.chip'); if(c){ focus.scene = +c.dataset.fs; renderFocusChips(); } });
+$('fc-durs').addEventListener('click', e=>{ const c=e.target.closest('.chip'); if(c){ focus.dur = +c.dataset.fd; renderFocusChips(); } });
 // 用当前档案预填登记表，供「修改信息」使用
 function fillRegisterForm(p){
   if(!p) return;
