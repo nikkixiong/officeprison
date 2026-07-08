@@ -95,6 +95,36 @@
   .wm-url{font-family:var(--font-hei);font-size:11px;color:var(--ink-soft);letter-spacing:.3px;margin-top:3px;}
   em.amt{font-style:normal;color:var(--seal);font-weight:700;}
 
+  /* ===== 改造周报（牛马周报 PPT / 软件窗口样式） ===== */
+  .report-win{padding:0;background:#fff;font-family:var(--font-hei);color:var(--ink);overflow:hidden;border:1px solid rgba(28,27,24,.25);}
+  .rw-bar{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--paper);padding:9px 12px;font-size:13px;}
+  .rw-bar-title{font-weight:700;letter-spacing:.5px;}
+  .rw-bar-btns b{display:inline-block;margin-left:9px;font-weight:400;opacity:.8;}
+  .rw-menu{display:flex;gap:18px;background:#F2EFE9;border-bottom:1px solid var(--line);padding:6px 14px;font-size:12px;color:var(--ink-soft);}
+  .rw-page{padding:22px 18px 20px;}
+  .rw-head{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:18px;}
+  .rw-h1{font-family:var(--font-song);font-weight:700;font-size:25px;letter-spacing:5px;text-indent:5px;}
+  .rw-sub{margin-top:9px;font-size:11.5px;color:var(--ink-soft);letter-spacing:1px;}
+  .rw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .rw-card{border:1px solid var(--line);border-radius:4px;padding:15px 10px;text-align:center;background:var(--paper);}
+  .rw-num{font-family:var(--font-song);font-weight:700;font-size:29px;line-height:1.1;}
+  .rw-num.red{color:var(--seal);}
+  .rw-lab{margin-top:6px;font-size:11px;color:var(--ink-soft);letter-spacing:.3px;}
+  .rw-sec{font-size:13px;font-weight:700;letter-spacing:1px;margin:0 0 12px;}
+  .rw-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+  .rw-bar-row{display:flex;align-items:center;gap:10px;font-size:12.5px;}
+  .rw-bar-lab{width:62px;flex-shrink:0;}
+  .rw-bar-track{flex:1;height:14px;background:#EFEBE2;border-radius:3px;overflow:hidden;}
+  .rw-bar-fill{height:100%;background:var(--seal);}
+  .rw-bar-val{width:42px;text-align:right;flex-shrink:0;font-family:var(--font-song);color:var(--ink-soft);}
+  .rw-empty{font-size:13px;color:var(--ink-soft);line-height:1.9;padding:8px 0 16px;}
+  .rw-summary{border-top:1px dashed var(--line);padding-top:14px;font-size:13px;line-height:1.8;}
+  .rw-summary b{color:var(--seal);}
+  .rw-foot{display:flex;align-items:center;gap:12px;background:#F2EFE9;border-top:1px solid var(--line);padding:12px 16px;}
+  .rw-qr{width:52px;height:52px;flex-shrink:0;display:block;}
+  .rw-foot-txt{font-size:11px;color:var(--ink-soft);line-height:1.6;}
+  .rw-foot-txt b{font-family:var(--font-hei);color:var(--ink);font-size:12.5px;}
+
   /* 印章 */
   .seal{position:absolute;right:-4px;bottom:-24px;width:104px;height:104px;
     transform:rotate(-12deg);opacity:.92;pointer-events:none;}
@@ -803,10 +833,10 @@ const WEEKLY_COMMENTS = [
   '一周辛苦，放风有功，望下周再接再厉，多放少改。'
 ];
 
-// 改造周报：统计本周（周一 00:00 至今）放风数据
+// 改造周报：本周摸鱼数据 → 「牛马周报 PPT」样式图片
 function docWeekly(p){
   const now = new Date();
-  const dow = now.getDay();                       // 0=周日
+  const dow = now.getDay();
   const back = (dow === 0 ? 6 : dow - 1);
   const mon = new Date(now); mon.setHours(0,0,0,0); mon.setDate(now.getDate()-back);
   const sun = new Date(mon); sun.setDate(mon.getDate()+6);
@@ -817,42 +847,45 @@ function docWeekly(p){
   const bySc = {}; recs.forEach(r=>{ bySc[r.type] = (bySc[r.type]||0) + r.sec; });
   const ranked = Object.keys(bySc).sort((a,b)=>bySc[b]-bySc[a]);
   const label = t => (SCENES[t] || SCENES.ff).label;
-  const min = sec => sec < 60 ? '不足 1' : Math.round(sec/60);
-  const range = `${mon.getMonth()+1} 月 ${mon.getDate()} 日 至 ${sun.getMonth()+1} 月 ${sun.getDate()} 日`;
-
-  let body;
-  if(recs.length === 0){
-    body = `<p>兹将本犯本周（${range}）改造情况通报如下：</p>
-      <p class="clause">本周暂无放风记录。该犯疑似偷偷努力工作，思想状况令狱方深表担忧。</p>
-      <p>狱方评语：改造之路漫漫，望下周务必安排放风，注意劳逸结合。</p>`;
-  } else {
-    const marks = ['①','②','③'];
-    const top = ranked.slice(0,3).map((t,i)=>`${marks[i]} ${label(t)}（${min(bySc[t])} 分钟）`).join('，');
-    body = `<p>兹将本犯本周（${range}）改造情况通报如下：</p>
-      <p class="clause">一、放风共计 <b>${recs.length}</b> 次，累计时长 <b>${min(totalSec)}</b> 分钟；</p>
-      <p class="clause">二、本周依法获得劳改津贴（放风白拿）<em class="amt">${yuan(totalAmt)}</em>；</p>
-      <p class="clause">三、放风偏好排行：${top}；</p>
-      <p class="clause">四、单次放风最长纪录 <b>${min(maxSec)}</b> 分钟。</p>
-      <p>狱方评语：${rand(WEEKLY_COMMENTS)}</p>`;
-  }
+  const min = sec => sec < 60 ? (sec>0?1:0) : Math.round(sec/60);
+  const range = (mon.getMonth()+1)+'.'+mon.getDate()+' — '+(sun.getMonth()+1)+'.'+sun.getDate();
+  const maxScSec = ranked.length ? bySc[ranked[0]] : 1;
+  const bars = ranked.length
+    ? ranked.slice(0,5).map(t=>{
+        const w = Math.max(6, Math.round(bySc[t]/maxScSec*100));
+        return '<div class="rw-bar-row"><span class="rw-bar-lab">'+label(t)+'</span>'
+             + '<div class="rw-bar-track"><div class="rw-bar-fill" style="width:'+w+'%"></div></div>'
+             + '<span class="rw-bar-val">'+min(bySc[t])+'分</span></div>';
+      }).join('')
+    : '<div class="rw-empty">本周暂无放风记录 —— 该犯疑似偷偷努力工作，思想状况存疑。</div>';
+  const comment = recs.length ? rand(WEEKLY_COMMENTS) : '改造之路漫漫，望下周务必安排放风，注意劳逸结合。';
+  const QR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAAFeAQMAAAD35eVZAAAABlBMVEUcGxj39fA3EyB9AAABuElEQVR42u2bSw7CMAxELXKAHClX50g9QKSS+JcENrBBtjRdINp6xZPtGTvQ/f3VCcEIRjCCEfwZ3EmvOm6e9jHuy/hm72bcg364EPyfYNqYM7fmVJs9c9L46eISnKlmtCa3kX7ULn42M7SCYB6CmoirnoJgthy8SIqqtUUQzNQHZ/e7ysS4qij6YAaCpkW7NL79A1o0AcHzGpnH6ff5FgQjV9FZNq3dafppKS0gmKGKavezh86N5Yx7RPx0casoG0CqezbqW6FakIOxCXLSsQu0HFz2kOUMCGbQouomzB6qnOEqekGLhidYdRDKBMXMiyqFFs2iRckweuZpMyw3/GAKJePzNRvCmLm43VKAYGQl49slbXxF66lUURAMT9ALqI7Rqu8HqcAPZuiD4hxMkO6bwm1fAYLBHb3V005rS7FUKQjG16JvpywOowg3ET0H/eATyfkm9/Zr/wuC4Wcyx/zFB2o2KwXB4FXUd/S0yZmjlIJgbC3q7U40jQzU+gkZBOMTtPla852h2EPsJtLl4Dr4dOOsWqY+eGwKm2UjlEweLarbXBuJ+i0IZvGD+B8QghGMYAT/FvwCVM9CsUxe2/0AAAAASUVORK5CYII=';
 
   return `
-  <div class="sheet" id="doc-sheet">
-    <div class="inner-frame">
-      <div class="masthead" style="margin:0;">
-        <div class="org">牛马监区管理委员会</div>
-        <div class="sub">NIUMA CORRECTIONAL PARODY BUREAU</div>
+  <div class="sheet report-win" id="doc-sheet">
+    <div class="rw-bar">
+      <span class="rw-bar-title">工位服刑周报.pptx — 摸鱼监控系统</span>
+      <span class="rw-bar-btns"><b>—</b><b>▢</b><b>✕</b></span>
+    </div>
+    <div class="rw-menu"><span>文件</span><span>编辑</span><span>视图</span><span>帮助</span></div>
+    <div class="rw-page">
+      <div class="rw-head">
+        <div class="rw-h1">本 周 摸 鱼 周 报</div>
+        <div class="rw-sub">牛马监区 · 摸鱼监控系统　|　${range}</div>
       </div>
-      <h1 class="doc-title">改造周报</h1>
-      <div class="doc-no">${docNo('周')}</div>
-      <div class="doc-body">
-        ${body}
+      <div class="rw-grid">
+        <div class="rw-card"><div class="rw-num">${min(totalSec)}</div><div class="rw-lab">摸鱼总时长 / 分钟</div></div>
+        <div class="rw-card"><div class="rw-num red">${yuan(totalAmt)}</div><div class="rw-lab">白拿老板 / 劳改津贴</div></div>
+        <div class="rw-card"><div class="rw-num">${recs.length}</div><div class="rw-lab">放风次数 / 次</div></div>
+        <div class="rw-card"><div class="rw-num">${min(maxSec)}</div><div class="rw-lab">单次最长 / 分钟</div></div>
       </div>
-      <div class="doc-sign">
-        牛马监区管理委员会<br>${cnDate()}
-        ${sealSVG()}
-      </div>
-      ${FOOT}
+      <div class="rw-sec">▍放风场景分布 TOP5</div>
+      <div class="rw-bars">${bars}</div>
+      <div class="rw-summary"><b>上级批示：</b>${comment}</div>
+    </div>
+    <div class="rw-foot">
+      <img class="rw-qr" src="${QR}" alt="扫码入狱">
+      <div class="rw-foot-txt"><b>officeprison.nikkilabs.com</b><br>扫码自投罗网 · 即刻入狱服刑</div>
     </div>
   </div>`;
 }
