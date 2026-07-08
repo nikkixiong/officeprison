@@ -379,7 +379,7 @@
       </div>
     </div>
     <div class="field">
-      <label for="f-hours">每日刑期（小时）</label>
+      <label for="f-hours">每日刑期（小时） <small>（含午休时间）</small></label>
       <input id="f-hours" type="number" inputmode="decimal" value="8">
     </div>
     <div class="field">
@@ -425,6 +425,7 @@
 
     <div class="homefoot">
       <button class="linklike" id="link-archive">服刑档案</button>
+      <button class="linklike" id="link-weekly">改造周报</button>
       <button class="linklike" id="link-edit">修改信息</button>
       <button class="linklike" id="link-verdict">查看判决书</button>
     </div>
@@ -795,6 +796,67 @@ function docRelease(p){
   </div>`;
 }
 
+const WEEKLY_COMMENTS = [
+  '本周放风张弛有度，改造与摸鱼齐头并进，实属难得。',
+  '该犯本周深谙放风之道，津贴照拿，问心无愧。',
+  '本周摸鱼数据可观，狱方看在眼里、急在心里，惜已拦不住。',
+  '一周辛苦，放风有功，望下周再接再厉，多放少改。'
+];
+
+// 改造周报：统计本周（周一 00:00 至今）放风数据
+function docWeekly(p){
+  const now = new Date();
+  const dow = now.getDay();                       // 0=周日
+  const back = (dow === 0 ? 6 : dow - 1);
+  const mon = new Date(now); mon.setHours(0,0,0,0); mon.setDate(now.getDate()-back);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const recs = loadRecords().filter(r => r.t >= mon.getTime());
+  const totalSec = recs.reduce((s,r)=>s+r.sec,0);
+  const totalAmt = recs.reduce((s,r)=>s+r.amt,0);
+  const maxSec = recs.reduce((m,r)=>Math.max(m,r.sec),0);
+  const bySc = {}; recs.forEach(r=>{ bySc[r.type] = (bySc[r.type]||0) + r.sec; });
+  const ranked = Object.keys(bySc).sort((a,b)=>bySc[b]-bySc[a]);
+  const label = t => (SCENES[t] || SCENES.ff).label;
+  const min = sec => sec < 60 ? '不足 1' : Math.round(sec/60);
+  const range = `${mon.getMonth()+1} 月 ${mon.getDate()} 日 至 ${sun.getMonth()+1} 月 ${sun.getDate()} 日`;
+
+  let body;
+  if(recs.length === 0){
+    body = `<p>兹将本犯本周（${range}）改造情况通报如下：</p>
+      <p class="clause">本周暂无放风记录。该犯疑似偷偷努力工作，思想状况令狱方深表担忧。</p>
+      <p>狱方评语：改造之路漫漫，望下周务必安排放风，注意劳逸结合。</p>`;
+  } else {
+    const marks = ['①','②','③'];
+    const top = ranked.slice(0,3).map((t,i)=>`${marks[i]} ${label(t)}（${min(bySc[t])} 分钟）`).join('，');
+    body = `<p>兹将本犯本周（${range}）改造情况通报如下：</p>
+      <p class="clause">一、放风共计 <b>${recs.length}</b> 次，累计时长 <b>${min(totalSec)}</b> 分钟；</p>
+      <p class="clause">二、本周依法获得劳改津贴（放风白拿）<em class="amt">${yuan(totalAmt)}</em>；</p>
+      <p class="clause">三、放风偏好排行：${top}；</p>
+      <p class="clause">四、单次放风最长纪录 <b>${min(maxSec)}</b> 分钟。</p>
+      <p>狱方评语：${rand(WEEKLY_COMMENTS)}</p>`;
+  }
+
+  return `
+  <div class="sheet" id="doc-sheet">
+    <div class="inner-frame">
+      <div class="masthead" style="margin:0;">
+        <div class="org">牛马监区管理委员会</div>
+        <div class="sub">NIUMA CORRECTIONAL PARODY BUREAU</div>
+      </div>
+      <h1 class="doc-title">改造周报</h1>
+      <div class="doc-no">${docNo('周')}</div>
+      <div class="doc-body">
+        ${body}
+      </div>
+      <div class="doc-sign">
+        牛马监区管理委员会<br>${cnDate()}
+        ${sealSVG()}
+      </div>
+      ${FOOT}
+    </div>
+  </div>`;
+}
+
 /* ---------- 视图切换 ---------- */
 function show(viewId){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -993,6 +1055,7 @@ $('link-edit').addEventListener('click', ()=>{
   show('view-register');
 });
 $('link-verdict').addEventListener('click', ()=>{ currentDocType='verdict'; track('verdict_view'); openDoc(docVerdict(loadProfile())); });
+$('link-weekly').addEventListener('click', ()=>{ currentDocType='weekly'; track('weekly_view'); openDoc(docWeekly(loadProfile())); });
 $('link-archive').addEventListener('click', ()=>{ track('archive_view'); renderArchive(); show('view-archive'); });
 $('btn-back-home').addEventListener('click', ()=>{ renderHome(); show('view-home'); });
 $('btn-doc-close').addEventListener('click', closeDoc);
