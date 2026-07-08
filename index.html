@@ -126,6 +126,8 @@
   .rw-bar-fill{height:100%;background:#4472C4;}
   .rw-bar-val{width:42px;text-align:right;flex-shrink:0;color:#2F5496;font-weight:700;}
   .rw-empty{font-size:13px;color:#7a7a7a;line-height:1.9;padding:8px 0 16px;}
+  .rw-focus{display:flex;justify-content:space-between;align-items:center;background:#f5f6f8;border:1px solid #e6e6e6;border-radius:3px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#555;}
+  .rw-focus b{color:#2F5496;font-size:15px;font-weight:800;}
   .rw-callout{background:#eef2f9;border-left:4px solid #2F5496;padding:12px 14px;font-size:12.5px;line-height:1.75;color:#333;border-radius:0 3px 3px 0;}
   .rw-callout b{color:#2F5496;margin-right:8px;}
   .rw-foot{display:flex;justify-content:space-between;align-items:center;background:#f7f7f7;border-top:1px solid #e6e6e6;padding:10px 16px;}
@@ -257,6 +259,9 @@
   }
   .chip.on{border-color:var(--seal);color:var(--seal);background:var(--seal-weak);font-weight:700;}
   .chip:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}
+  .custom-input{display:block;width:70%;max-width:260px;margin:10px auto 0;padding:9px 12px;font-size:14px;
+    font-family:var(--font-fang);text-align:center;background:#fff;border:1px solid var(--seal);border-radius:2px;color:var(--ink);}
+  .custom-input:focus{outline:2px solid var(--seal);outline-offset:1px;}
   .timer-clock{
     font-family:var(--font-song);font-variant-numeric:tabular-nums;
     font-size:72px;font-weight:700;letter-spacing:2px;margin:34px 0 4px;
@@ -487,6 +492,7 @@
 
     <div class="today-board">
       <div><b id="t-count">0</b><span>今日放风（次）</span></div>
+      <div><b id="t-focus">0</b><span>今日劳改（分）</span></div>
       <div><b id="t-rate">0%</b><span>白拿率</span></div>
     </div>
 
@@ -519,6 +525,7 @@
         <div id="fc-setup">
           <div class="fc-lab">选择劳改场景</div>
           <div class="fc-chips" id="fc-scenes"></div>
+          <input id="fc-custom-input" class="custom-input" type="text" maxlength="10" placeholder="自定义劳改事由…" style="display:none">
           <div class="fc-lab">沉浸时长（分钟）</div>
           <div class="fc-chips" id="fc-durs"></div>
           <button class="btn red" id="btn-focus-start" style="margin-top:22px;">开始沉浸式劳改</button>
@@ -550,7 +557,9 @@
       <button class="chip" data-scene="surf">网上冲浪</button>
       <button class="chip" data-scene="nap">工位补觉</button>
       <button class="chip" data-scene="walk">园区遛弯</button>
+      <button class="chip" data-scene="__custom">＋自定义</button>
     </div>
+    <input id="scene-custom-input" class="custom-input" type="text" maxlength="8" placeholder="自定义放风事由…" style="display:none">
     <div class="timer-clock" id="tm-clock" aria-live="off">00:00</div>
     <div class="timer-money">本次劳改津贴累计 <em id="tm-money">¥0.00</em></div>
     <div class="slogan" id="tm-slogan">改造一分钟，快乐六十秒</div>
@@ -568,6 +577,7 @@
       <div class="row"><span>累计放风</span><b id="a-count">0 次</b></div>
       <div class="row"><span>累计放风时间</span><b id="a-min">0 分钟</b></div>
       <div class="row"><span>累计劳改津贴</span><b id="a-money">¥0.00</b></div>
+      <div class="row"><span>累计沉浸式劳改</span><b id="a-focus">0 分钟</b></div>
       <div class="row"><span>单次放风最长纪录</span><b id="a-max">—</b></div>
     </div>
     <button class="btn ghost small" id="btn-back-home" style="margin-top:28px;">返回监区</button>
@@ -658,9 +668,10 @@
 
 const LS = {
   profile: 'gwfx_profile',
-  records: 'gwfx_records',      // [{t, type:'ff'|'dd', sec, amt}]
+  records: 'gwfx_records',      // [{t, type, sec, amt}] 放风流水
   firstDay: 'gwfx_first_day',
-  active: 'gwfx_active'         // 进行中的放风 {scene, start}，用于跨刷新/退出续计时
+  active: 'gwfx_active',        // 进行中的放风 {scene, start}，用于跨刷新/退出续计时
+  focus: 'gwfx_focus'          // [{t, day, scene, sec, done}] 沉浸式劳改流水
 };
 
 /* ---------- 工具 ---------- */
@@ -699,6 +710,17 @@ function loadRecords(){ try{ return JSON.parse(localStorage.getItem(LS.records))
 function saveRecords(r){ localStorage.setItem(LS.records, JSON.stringify(r)); }
 function perSecond(p){ return p.salary / p.days / p.hours / 3600; }
 function todayRecords(){ const k=todayKey(); return loadRecords().filter(r => r.day === k); }
+// 沉浸式劳改流水
+function loadFocus(){ try{ return JSON.parse(localStorage.getItem(LS.focus)) || []; }catch(e){ return []; } }
+function saveFocusRec(sec, scene, done){
+  if(sec < 60) return;  // 不足 1 分钟不计
+  const arr = loadFocus();
+  arr.push({ t: Date.now(), day: todayKey(), scene, sec, done });
+  localStorage.setItem(LS.focus, JSON.stringify(arr));
+}
+// 场景显示：预设走 SCENES，自定义直接回显文本
+function sceneLabel(t){ return (SCENES[t] && SCENES[t].label) || t; }
+function sceneDoc(t){ return (SCENES[t] && SCENES[t].doc) || ('放风（'+t+'）'); }
 
 /* ---------- 文案库 ---------- */
 const SLOGANS = [
@@ -918,7 +940,7 @@ function docWeekly(p){
   const maxSec = recs.reduce((m,r)=>Math.max(m,r.sec),0);
   const bySc = {}; recs.forEach(r=>{ bySc[r.type] = (bySc[r.type]||0) + r.sec; });
   const ranked = Object.keys(bySc).sort((a,b)=>bySc[b]-bySc[a]);
-  const label = t => (SCENES[t] || SCENES.ff).label;
+  const label = t => sceneLabel(t);
   const min = sec => sec < 60 ? (sec>0?1:0) : Math.round(sec/60);
   const range = (mon.getMonth()+1)+'.'+mon.getDate()+' — '+(sun.getMonth()+1)+'.'+sun.getDate();
   const maxScSec = ranked.length ? bySc[ranked[0]] : 1;
@@ -931,6 +953,9 @@ function docWeekly(p){
       }).join('')
     : '<div class="rw-empty">本周暂无放风记录 —— 该犯疑似偷偷努力工作，思想状况存疑。</div>';
   const comment = recs.length ? rand(WEEKLY_COMMENTS) : '改造之路漫漫，望下周务必安排放风，注意劳逸结合。';
+  const focusRecs = loadFocus().filter(f => f.t >= mon.getTime());
+  const focusMin = Math.round(focusRecs.reduce((s,f)=>s+f.sec,0)/60);
+  const focusCount = focusRecs.length;
   const QR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAAFeAQMAAAD35eVZAAAABlBMVEUcGxj39fA3EyB9AAABuElEQVR42u2bSw7CMAxELXKAHClX50g9QKSS+JcENrBBtjRdINp6xZPtGTvQ/f3VCcEIRjCCEfwZ3EmvOm6e9jHuy/hm72bcg364EPyfYNqYM7fmVJs9c9L46eISnKlmtCa3kX7ULn42M7SCYB6CmoirnoJgthy8SIqqtUUQzNQHZ/e7ysS4qij6YAaCpkW7NL79A1o0AcHzGpnH6ff5FgQjV9FZNq3dafppKS0gmKGKavezh86N5Yx7RPx0casoG0CqezbqW6FakIOxCXLSsQu0HFz2kOUMCGbQouomzB6qnOEqekGLhidYdRDKBMXMiyqFFs2iRckweuZpMyw3/GAKJePzNRvCmLm43VKAYGQl49slbXxF66lUURAMT9ALqI7Rqu8HqcAPZuiD4hxMkO6bwm1fAYLBHb3V005rS7FUKQjG16JvpywOowg3ET0H/eATyfkm9/Zr/wuC4Wcyx/zFB2o2KwXB4FXUd/S0yZmjlIJgbC3q7U40jQzU+gkZBOMTtPla852h2EPsJtLl4Dr4dOOsWqY+eGwKm2UjlEweLarbXBuJ+i0IZvGD+B8QghGMYAT/FvwCVM9CsUxe2/0AAAAASUVORK5CYII=';
 
   return `
@@ -953,6 +978,7 @@ function docWeekly(p){
       </div>
       <div class="rw-sec"><span class="rw-sqr"></span>放风场景分布 · TOP 5</div>
       <div class="rw-bars">${bars}</div>
+      <div class="rw-focus"><span>本周沉浸式劳改（专注）</span><b>${focusMin} 分钟 · ${focusCount} 次</b></div>
       <div class="rw-callout"><b>上级批示</b>${comment}</div>
     </div>
     <div class="rw-foot">
@@ -985,6 +1011,9 @@ function renderHome(){
   const hourly = p.salary/p.days/p.hours;
   $('h-greet').textContent = `今日在押。时薪核定 ${yuan(hourly)}/小时，放风期间照常计酬。`;
   $('t-count').textContent = recs.length;
+  const k = todayKey();
+  const focusSec = loadFocus().filter(f => f.day === k).reduce((s,f)=>s+f.sec, 0);
+  $('t-focus').textContent = Math.round(focusSec/60);
   tickServed();
 }
 
@@ -999,6 +1028,7 @@ function renderArchive(){
   $('a-count').textContent = recs.length + ' 次';
   $('a-min').textContent = Math.round(totalSec/60) + ' 分钟';
   $('a-money').textContent = yuan(recs.reduce((s,r)=>s+r.amt,0));
+  $('a-focus').textContent = Math.round(loadFocus().reduce((s,f)=>s+f.sec,0)/60) + ' 分钟';
   $('a-max').textContent = maxRec ? fmtDur(maxRec) : '—';
 }
 
@@ -1013,8 +1043,9 @@ let timer = { running:false, scene:'ff', start:0, itv:null, sloganItv:null };
 
 function setScene(scene){
   timer.scene = scene;
+  const custom = !SCENES[scene];  // 非预设 = 自定义
   document.querySelectorAll('#scene-row .chip').forEach(c=>{
-    c.classList.toggle('on', c.dataset.scene === scene);
+    c.classList.toggle('on', custom ? c.dataset.scene === '__custom' : c.dataset.scene === scene);
   });
   if(timer.running) saveActive();  // 保存当前场景，恢复时保持一致
 }
@@ -1039,6 +1070,7 @@ function runTimerTicks(){
 function startTimer(){
   timer = { running:true, scene:'ff', start:Date.now(), itv:null, sloganItv:null };
   saveActive();  // 持久化开始时间，退出后可续计
+  $('scene-custom-input').style.display = 'none'; $('scene-custom-input').value = '';
   setScene('ff');
   $('tm-slogan').textContent = rand(SLOGANS);
   track('fangfeng_start');  // 开始放风
@@ -1049,6 +1081,9 @@ function startTimer(){
 // 页面重新打开时，若有未收监的放风，恢复到计时页并把离开的时间也算入
 function resumeTimer(active){
   timer = { running:true, scene: active.scene || 'ff', start: active.start, itv:null, sloganItv:null };
+  const inp = $('scene-custom-input');
+  if(!SCENES[timer.scene]){ inp.style.display = ''; inp.value = timer.scene; }  // 自定义场景回显
+  else { inp.style.display = 'none'; }
   setScene(timer.scene);
   $('tm-slogan').textContent = rand(SLOGANS);
   show('view-timer');
@@ -1073,7 +1108,7 @@ function stopTimer(){
   timer.running = false;
   renderHome();
   show('view-home');
-  $('s-scene').textContent = (SCENES[scene] || SCENES.ff).doc;
+  $('s-scene').textContent = sceneDoc(scene);
   $('s-dur').textContent = fmtDur(sec);
   $('s-amt').textContent = '+' + yuan(amt);
   $('s-comment').textContent = escaped ? rand(ESCAPE_COMMENTS) : getComment(scene, sec);
@@ -1137,39 +1172,50 @@ $('btn-slip-close').addEventListener('click', ()=>$('slip-overlay').classList.re
 
 $('btn-fangfeng').addEventListener('click', startTimer);
 $('scene-row').addEventListener('click', e=>{
-  const chip = e.target.closest('.chip');
-  if(chip) setScene(chip.dataset.scene);
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  const inp = $('scene-custom-input');
+  if(chip.dataset.scene === '__custom'){
+    inp.style.display = ''; inp.focus();
+    setScene(inp.value.trim() || '自定义');
+  } else {
+    inp.style.display = 'none';
+    setScene(chip.dataset.scene);
+  }
 });
+$('scene-custom-input').addEventListener('input', ()=>{ setScene($('scene-custom-input').value.trim() || '自定义'); });
 $('btn-shoujian').addEventListener('click', stopTimer);
 $('btn-release').addEventListener('click', ()=>{ currentDocType='release'; track('release_view'); openDoc(docRelease(loadProfile())); });
 
 /* ---------- 沉浸式劳改（番茄钟 · 监狱专注模式） ---------- */
-const FOCUS_SCENES = ['撰写悔过材料','与外方势力周旋','列席提审大会','敲击脱逃代码','绘制越狱蓝图','狱内紧急传讯'];
+const FOCUS_SCENES = ['写材料','跟客户 battle','开会','写代码','做方案设计','回消息'];
 const FOCUS_DURS = [15, 25, 45, 60];
 const GUARD_LINES = [
   '在认真劳改吗？','抬起头，让本狱警看看你的改造态度。','手别停，材料写起来。',
   '又想摸鱼？本狱警盯着你呢。','改造进度不错，继续保持。','这一趟没抓到你走神，算你识相。',
   '眼神一飘，加刑警告。','认真点，早劳改早出狱。'
 ];
-let focus = { running:false, scene:0, dur:25, remain:0, itv:null, guardItv:null };
+let focus = { running:false, done:false, scene:FOCUS_SCENES[0], dur:25, remain:0, itv:null, guardItv:null };
 
 function renderFocusChips(){
-  $('fc-scenes').innerHTML = FOCUS_SCENES.map((s,i)=>`<button class="chip${i===focus.scene?' on':''}" data-fs="${i}">${s}</button>`).join('');
+  const custom = FOCUS_SCENES.indexOf(focus.scene) < 0;
+  $('fc-scenes').innerHTML = FOCUS_SCENES.map(s=>`<button class="chip${s===focus.scene?' on':''}" data-fs="${s}">${s}</button>`).join('')
+    + `<button class="chip${custom?' on':''}" data-fs="__custom">＋自定义</button>`;
   $('fc-durs').innerHTML = FOCUS_DURS.map(d=>`<button class="chip${d===focus.dur?' on':''}" data-fd="${d}">${d}</button>`).join('');
-  $('fc-reason').textContent = FOCUS_SCENES[focus.scene];
+  $('fc-reason').textContent = focus.scene;
   $('fc-clock').textContent = pad(focus.dur) + ':00';
 }
 function stopFocusTimers(){ clearInterval(focus.itv); clearInterval(focus.guardItv); focus.itv=null; focus.guardItv=null; }
 function enterFocus(){
-  stopFocusTimers(); focus.running = false;
+  stopFocusTimers(); focus.running = false; focus.done = false;
   $('fc-setup').style.display = ''; $('fc-running').style.display = 'none';
+  $('fc-custom-input').style.display = (FOCUS_SCENES.indexOf(focus.scene) < 0) ? '' : 'none';
   $('btn-focus-stop').textContent = '提前收工（结束劳改）';
   renderFocusChips();
   show('view-focus');
 }
 function paintFocus(){ $('fc-clock').textContent = pad(Math.floor(focus.remain/60)) + ':' + pad(focus.remain % 60); }
 function startFocus(){
-  focus.running = true; focus.remain = focus.dur * 60;
+  focus.running = true; focus.done = false; focus.remain = focus.dur * 60;
   $('fc-setup').style.display = 'none'; $('fc-running').style.display = '';
   $('fc-note').textContent = '狱警正在监视你的改造，专心劳改，切勿摸鱼。';
   $('btn-focus-stop').textContent = '提前收工（结束劳改）';
@@ -1180,7 +1226,9 @@ function startFocus(){
   focus.guardItv = setInterval(guardVisit, 20000);    // 之后每 20 秒
 }
 function completeFocus(){
-  stopFocusTimers(); focus.remain = 0; $('fc-clock').textContent = '00:00';
+  stopFocusTimers(); focus.remain = 0; focus.done = true;
+  saveFocusRec(focus.dur * 60, focus.scene, true);    // 记录完整劳改时长
+  $('fc-clock').textContent = '00:00';
   $('fc-note').textContent = '沉浸式劳改期满！本次改造圆满完成，狱方予以表扬，准予放风片刻。';
   $('btn-focus-stop').textContent = '领取劳改功勋 · 返回监区';
   track('focus_done', { dur: focus.dur });
@@ -1192,13 +1240,26 @@ function guardVisit(){
   say.classList.add('show');
   setTimeout(()=>say.classList.remove('show'), 3200);
 }
-function exitFocus(){ stopFocusTimers(); focus.running = false; renderHome(); show('view-home'); }
+function endFocus(){   // 结束劳改（提前收工 / 领取功勋后返回）
+  if(focus.running && !focus.done){                   // 提前收工：记录已劳改时长
+    saveFocusRec(focus.dur * 60 - focus.remain, focus.scene, false);
+  }
+  stopFocusTimers(); focus.running = false;
+  renderHome(); show('view-home');
+}
 
 $('btn-focus').addEventListener('click', enterFocus);
 $('btn-focus-back').addEventListener('click', ()=>{ stopFocusTimers(); show('view-home'); });
 $('btn-focus-start').addEventListener('click', startFocus);
-$('btn-focus-stop').addEventListener('click', exitFocus);
-$('fc-scenes').addEventListener('click', e=>{ const c=e.target.closest('.chip'); if(c){ focus.scene = +c.dataset.fs; renderFocusChips(); } });
+$('btn-focus-stop').addEventListener('click', endFocus);
+$('fc-scenes').addEventListener('click', e=>{
+  const c = e.target.closest('.chip'); if(!c) return;
+  const inp = $('fc-custom-input');
+  if(c.dataset.fs === '__custom'){ inp.style.display = ''; inp.focus(); focus.scene = inp.value.trim() || '自定义劳改'; }
+  else { inp.style.display = 'none'; focus.scene = c.dataset.fs; }
+  renderFocusChips();
+});
+$('fc-custom-input').addEventListener('input', ()=>{ focus.scene = $('fc-custom-input').value.trim() || '自定义劳改'; renderFocusChips(); });
 $('fc-durs').addEventListener('click', e=>{ const c=e.target.closest('.chip'); if(c){ focus.dur = +c.dataset.fd; renderFocusChips(); } });
 // 用当前档案预填登记表，供「修改信息」使用
 function fillRegisterForm(p){
