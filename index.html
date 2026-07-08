@@ -107,29 +107,29 @@
   .rw-ribbon .on{color:#C43E1C;font-weight:700;}
   /* 幻灯片 */
   .rw-slide{padding:22px 20px 20px;background:#fff;}
-  .rw-title-row{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #2F5496;padding-bottom:11px;margin-bottom:18px;}
+  .rw-title-row{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #C0281E;padding-bottom:11px;margin-bottom:18px;}
   .rw-title{font-size:22px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:9px;}
-  .rw-tick{width:6px;height:21px;background:#2F5496;display:inline-block;border-radius:1px;}
+  .rw-tick{width:6px;height:21px;background:#C0281E;display:inline-block;border-radius:1px;}
   .rw-date{font-size:12px;color:#8a8a8a;letter-spacing:.5px;}
   .rw-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px;}
-  .rw-card{background:#fff;border:1px solid #e6e6e6;border-top:3px solid #2F5496;border-radius:3px;padding:15px 12px;text-align:center;}
-  .rw-card.accent{background:#2F5496;border-color:#2F5496;}
+  .rw-card{background:#fff;border:1px solid #e6e6e6;border-top:3px solid #C0281E;border-radius:3px;padding:15px 12px;text-align:center;}
+  .rw-card.accent{background:#C0281E;border-color:#C0281E;}
   .rw-card.accent .rw-num,.rw-card.accent .rw-lab{color:#fff;}
   .rw-num{font-size:29px;font-weight:800;line-height:1.05;color:#1f1f1f;letter-spacing:.5px;}
   .rw-lab{margin-top:7px;font-size:11px;color:#7a7a7a;letter-spacing:.3px;}
   .rw-sec{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1f1f1f;margin:0 0 14px;}
-  .rw-sqr{width:12px;height:12px;background:#2F5496;display:inline-block;}
+  .rw-sqr{width:12px;height:12px;background:#C0281E;display:inline-block;}
   .rw-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
   .rw-bar-row{display:flex;align-items:center;gap:10px;font-size:12.5px;}
   .rw-bar-lab{width:62px;flex-shrink:0;color:#3a3a3a;}
-  .rw-bar-track{flex:1;height:15px;background:#eef1f6;border-radius:2px;overflow:hidden;}
-  .rw-bar-fill{height:100%;background:#4472C4;}
-  .rw-bar-val{width:42px;text-align:right;flex-shrink:0;color:#2F5496;font-weight:700;}
+  .rw-bar-track{flex:1;height:15px;background:#f2e4e2;border-radius:2px;overflow:hidden;}
+  .rw-bar-fill{height:100%;background:#C0281E;}
+  .rw-bar-val{width:42px;text-align:right;flex-shrink:0;color:#C0281E;font-weight:700;}
   .rw-empty{font-size:13px;color:#7a7a7a;line-height:1.9;padding:8px 0 16px;}
   .rw-focus{display:flex;justify-content:space-between;align-items:center;background:#f5f6f8;border:1px solid #e6e6e6;border-radius:3px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#555;}
-  .rw-focus b{color:#2F5496;font-size:15px;font-weight:800;}
-  .rw-callout{background:#eef2f9;border-left:4px solid #2F5496;padding:12px 14px;font-size:12.5px;line-height:1.75;color:#333;border-radius:0 3px 3px 0;}
-  .rw-callout b{color:#2F5496;margin-right:8px;}
+  .rw-focus b{color:#C0281E;font-size:15px;font-weight:800;}
+  .rw-callout{background:#fbeeec;border-left:4px solid #C0281E;padding:12px 14px;font-size:12.5px;line-height:1.75;color:#333;border-radius:0 3px 3px 0;}
+  .rw-callout b{color:#C0281E;margin-right:8px;}
   .rw-foot{display:flex;justify-content:space-between;align-items:center;background:#f7f7f7;border-top:1px solid #e6e6e6;padding:10px 16px;}
   .rw-foot-l{display:flex;align-items:center;gap:10px;font-size:10.5px;color:#8a8a8a;line-height:1.5;}
   .rw-qr{width:46px;height:46px;flex-shrink:0;display:block;}
@@ -137,7 +137,7 @@
   .rw-foot-r{font-size:10.5px;color:#9a9a9a;letter-spacing:.5px;white-space:nowrap;flex-shrink:0;margin-left:10px;}
 
   /* ===== 沉浸式劳改（番茄钟 · 监狱牢房） ===== */
-  .btn-hint{display:block;font-family:var(--font-fang);font-size:11px;font-weight:400;letter-spacing:1px;text-indent:0;color:var(--ink-soft);margin-top:4px;}
+  .btn-hint{display:block;font-family:var(--font-fang);font-size:11px;font-weight:400;letter-spacing:1px;text-indent:0;color:rgba(247,245,240,.6);margin-top:4px;}
   #view-focus{padding:0;}
   .cell{position:relative;min-height:88vh;background:#141310;color:#E9E5DB;display:flex;flex-direction:column;overflow:hidden;}
   .cell-window{position:relative;height:118px;overflow:hidden;background:linear-gradient(#0b0a08,#211e18);border-bottom:3px solid #000;}
@@ -492,12 +492,12 @@
 
     <div class="today-board">
       <div><b id="t-count">0</b><span>今日放风（次）</span></div>
-      <div><b id="t-focus">0</b><span>今日劳改（分）</span></div>
+      <div><b id="t-focus">0</b><span>今日劳改（次）</span></div>
       <div><b id="t-rate">0%</b><span>白拿率</span></div>
     </div>
 
     <button class="btn red" id="btn-fangfeng">开始放风</button>
-    <button class="btn ghost" id="btn-focus" style="margin-top:14px;">沉浸式劳改<span class="btn-hint">番茄钟 · 专注不摸鱼</span></button>
+    <button class="btn" id="btn-focus" style="margin-top:14px;">沉浸式劳改<span class="btn-hint">番茄钟 · 专注不摸鱼</span></button>
     <button class="btn ghost small" id="btn-release" style="margin-top:14px;">申请今日释放</button>
 
     <div class="homefoot">
@@ -974,11 +974,11 @@ function docWeekly(p){
         <div class="rw-card"><div class="rw-num">${min(totalSec)}</div><div class="rw-lab">摸鱼总时长 · 分钟</div></div>
         <div class="rw-card accent"><div class="rw-num">${yuan(totalAmt)}</div><div class="rw-lab">白拿老板 · 劳改津贴</div></div>
         <div class="rw-card"><div class="rw-num">${recs.length}</div><div class="rw-lab">放风次数 · 次</div></div>
-        <div class="rw-card"><div class="rw-num">${min(maxSec)}</div><div class="rw-lab">单次最长 · 分钟</div></div>
+        <div class="rw-card"><div class="rw-num">${focusCount}</div><div class="rw-lab">沉浸劳改 · 次</div></div>
       </div>
       <div class="rw-sec"><span class="rw-sqr"></span>放风场景分布 · TOP 5</div>
       <div class="rw-bars">${bars}</div>
-      <div class="rw-focus"><span>本周沉浸式劳改（专注）</span><b>${focusMin} 分钟 · ${focusCount} 次</b></div>
+      <div class="rw-focus"><span>本周沉浸式劳改（专注）累计</span><b>${focusMin} 分钟</b></div>
       <div class="rw-callout"><b>上级批示</b>${comment}</div>
     </div>
     <div class="rw-foot">
@@ -1012,8 +1012,7 @@ function renderHome(){
   $('h-greet').textContent = `今日在押。时薪核定 ${yuan(hourly)}/小时，放风期间照常计酬。`;
   $('t-count').textContent = recs.length;
   const k = todayKey();
-  const focusSec = loadFocus().filter(f => f.day === k).reduce((s,f)=>s+f.sec, 0);
-  $('t-focus').textContent = Math.round(focusSec/60);
+  $('t-focus').textContent = loadFocus().filter(f => f.day === k).length;
   tickServed();
 }
 
