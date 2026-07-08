@@ -144,9 +144,23 @@
   .cell-bars{position:absolute;inset:0;pointer-events:none;
     background:repeating-linear-gradient(to right,
       transparent 0 28px, #423d31 28px 30px, #211e17 30px 35px, #060504 35px 37px);}
-  .guard{position:absolute;top:50%;left:-72px;transform:translateY(-50%);font-size:54px;line-height:1;filter:grayscale(.2);}
-  .guard.pass{animation:guardPass 5.5s ease-in-out;}
-  @keyframes guardPass{0%{left:-72px;}22%{left:42%;}68%{left:42%;}100%{left:106%;}}
+  .g-svg{width:100%;height:100%;display:block;}
+  /* 巡逻狱警：侧脸剪影，持续左右来回巡逻（美式警帽 + 墨镜 + 警棍） */
+  .guard-patrol{position:absolute;bottom:2px;left:-56px;width:40px;height:54px;
+    animation:guardWalk 10s linear infinite;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  @keyframes guardWalk{
+    0%{left:-56px;transform:scaleX(1);}
+    47%{left:calc(100% - 12px);transform:scaleX(1);}
+    50%{left:calc(100% - 12px);transform:scaleX(-1);}
+    97%{left:-56px;transform:scaleX(-1);}
+    100%{left:-56px;transform:scaleX(1);}
+  }
+  /* 抽查狱警：巡逻途中突然扭头正对镜头，逼近警示 */
+  .guard-check{position:absolute;top:50%;left:50%;width:60px;height:68px;
+    transform:translate(-50%,-46%) scale(.25) rotate(-8deg);opacity:0;pointer-events:none;
+    transition:opacity .28s ease,transform .32s cubic-bezier(.34,1.56,.64,1);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));}
+  .guard-check.show{opacity:1;transform:translate(-50%,-46%) scale(1) rotate(0deg);}
   .guard-say{max-width:80%;margin:14px auto 0;background:#E9E5DB;color:#1c1b18;padding:9px 15px;border-radius:6px;
     font-size:13.5px;letter-spacing:.5px;text-align:center;position:relative;opacity:0;transform:translateY(-6px);
     transition:opacity .3s ease,transform .3s ease;}
@@ -512,7 +526,29 @@
   <section class="view" id="view-focus">
     <div class="cell">
       <div class="cell-window">
-        <div class="guard" id="guard">👮</div>
+        <div class="guard-patrol" id="guard-patrol">
+          <svg class="g-svg" viewBox="0 0 40 56" aria-hidden="true">
+            <path d="M6 14 Q20 3 34 14 L34 18 L6 18 Z" fill="#141310"/>
+            <rect x="1" y="16" width="24" height="4" rx="1" fill="#141310"/>
+            <circle cx="20" cy="21" r="8" fill="#2a2620"/>
+            <path d="M9 29 Q20 24 31 29 L33 49 Q20 54 7 49 Z" fill="#2a2620"/>
+            <rect x="29" y="30" width="4" height="17" rx="2" fill="#2a2620"/>
+            <rect x="30" y="19" width="3" height="30" rx="1.5" fill="#8a6d3b" transform="rotate(18 31.5 34)"/>
+            <path d="M12 49 L8 56 M27 49 L32 56" stroke="#2a2620" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="18" cy="31" r="2" fill="#C0281E"/>
+          </svg>
+        </div>
+        <div class="guard-check" id="guard-check">
+          <svg class="g-svg" viewBox="0 0 56 64" aria-hidden="true">
+            <path d="M8 16 Q28 1 48 16 L48 21 L8 21 Z" fill="#141310"/>
+            <rect x="4" y="18" width="48" height="5" rx="1.5" fill="#141310"/>
+            <circle cx="28" cy="25" r="11" fill="#2a2620"/>
+            <rect x="18" y="23" width="20" height="4.5" rx="2" fill="#C0281E"/>
+            <path d="M11 36 Q28 29 45 36 L47 62 Q28 67 9 62 Z" fill="#2a2620"/>
+            <circle cx="28" cy="42" r="3" fill="#C0281E"/>
+            <rect x="4" y="46" width="48" height="5.5" rx="2.75" fill="#8a6d3b" transform="rotate(-7 28 49)"/>
+          </svg>
+        </div>
         <div class="cell-bars"></div>
       </div>
       <div class="guard-say" id="guard-say"></div>
@@ -713,7 +749,7 @@ function todayRecords(){ const k=todayKey(); return loadRecords().filter(r => r.
 // 沉浸式劳改流水
 function loadFocus(){ try{ return JSON.parse(localStorage.getItem(LS.focus)) || []; }catch(e){ return []; } }
 function saveFocusRec(sec, scene, done){
-  if(sec < 60) return;  // 不足 1 分钟不计
+  if(sec < 3) return;  // 仅过滤误触（<3秒），真实开始的劳改一律计入次数
   const arr = loadFocus();
   arr.push({ t: Date.now(), day: todayKey(), scene, sec, done });
   localStorage.setItem(LS.focus, JSON.stringify(arr));
@@ -961,13 +997,13 @@ function docWeekly(p){
   return `
   <div class="sheet report-win" id="doc-sheet">
     <div class="rw-titlebar">
-      <span class="rw-app"><span class="rw-appicon">P</span>工位服刑 · 摸鱼周报.pptx</span>
+      <span class="rw-app"><span class="rw-appicon">P</span>工位服刑 · 改造周报.pptx</span>
       <span class="rw-winctl"><i>─</i><i>▢</i><i>✕</i></span>
     </div>
     <div class="rw-ribbon"><span class="on">开始</span><span>插入</span><span>设计</span><span>切换</span><span>审阅</span><span>视图</span></div>
     <div class="rw-slide">
       <div class="rw-title-row">
-        <div class="rw-title"><span class="rw-tick"></span>本周摸鱼周报</div>
+        <div class="rw-title"><span class="rw-tick"></span>本周改造周报</div>
         <div class="rw-date">${range}</div>
       </div>
       <div class="rw-grid">
@@ -1233,11 +1269,11 @@ function completeFocus(){
   track('focus_done', { dur: focus.dur });
 }
 function guardVisit(){
-  const g = $('guard'), say = $('guard-say');
+  const check = $('guard-check'), say = $('guard-say');
   say.textContent = rand(GUARD_LINES);
-  g.classList.remove('pass'); void g.offsetWidth; g.classList.add('pass');
+  check.classList.add('show');
   say.classList.add('show');
-  setTimeout(()=>say.classList.remove('show'), 3200);
+  setTimeout(()=>{ check.classList.remove('show'); say.classList.remove('show'); }, 3200);
 }
 function endFocus(){   // 结束劳改（提前收工 / 领取功勋后返回）
   if(focus.running && !focus.done){                   // 提前收工：记录已劳改时长
